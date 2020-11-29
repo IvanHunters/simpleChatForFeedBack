@@ -15,5 +15,12 @@ ssh
 
 ## Web-Show
 
-localhost:3000/ - user
-localhost:3000/manager - manager
+## User
+```
+localhost:3000/
+```
+
+## Manager
+```
+localhost:3000/manager
+```
