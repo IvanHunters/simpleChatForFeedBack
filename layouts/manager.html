@@ -1,0 +1,79 @@
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <title>Socket.IO chat</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font: 13px Helvetica, Arial; }
+        form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+        form input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
+        form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages li { padding: 5px 10px; }
+        #messages li:nth-child(odd) { background: #eee; }
+    </style>
+</head>
+<body>
+<ul id="users"></ul>
+    <script>
+        function in_array(needle, haystack, strict) {
+
+            var found = false, key, strict = !!strict;
+
+            for (key in haystack) {
+                if ((strict && haystack[key] === needle) || (!strict && haystack[key] == needle)) {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
+
+
+        var users_dynamic = [];
+        var socket = io();
+        socket.emit('connect-user', 'manager');
+        socket.on('messageFromUser', function (userData){
+            $('#' + userData.userId).append('<br><span class="name">' +userData.name+ ': </span><span class="message">' +userData.message+ '</span>');
+        });
+        socket.on('manager-update', function(users){
+            users.forEach(function (user) {
+                if(!in_array(user, users_dynamic)){
+                    $('#users').append(
+                        '<div class="user" id="'
+                        +user+
+                        '"><br><br><b>'
+                        +user+
+                        '</b></div><div id="support_panel_for_'
+                        +user+
+                        '"><input type="text" placeholder="messageToUser" id="text_message_'
+                        +user+
+                        '"><input type="button" value="send" data-send="'
+                        +user+
+                        '" class="send_user"></div>');
+                    users_dynamic.push(user);
+                    $('[data-send="'+user+'"]').addClass(function (){
+                        $(this).on("click", function (){
+                            var userId = $(this).attr('data-send');
+                            var textMessage = $('#text_message_' + userId).val();
+                            $('#text_message_' + userId).val('');
+                            socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+                        });
+                    });
+                }
+            });
+            users_dynamic.forEach(function (user) {
+                if(!in_array(user, users)){
+                    var userIndex = users_dynamic.indexOf(user);
+                    if(userIndex != -1){
+                        delete users_dynamic[userIndex];
+                        $('#' + user).remove();
+                        $('#support_panel_for_' + user).remove();
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
