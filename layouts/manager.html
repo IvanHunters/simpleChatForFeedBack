@@ -8,7 +8,7 @@
 <html>
 <head>
 <style>
-.new_message:first-child::after {
+.new_message:first-child::before {
     background: blue;
     width: 10px;
     height: 10px;
@@ -16,7 +16,7 @@
     margin-top: 4px;
     margin-left: 2px;
     content: "";
-    position: absolute;
+    display: block;
 }
 .container{max-width:1170px; margin:auto;}
 img{ max-width:100%;}
@@ -108,7 +108,7 @@ img{ max-width:100%;}
 .received_withd_msg { width: 57%;}
 .mesgs {
   float: left;
-  padding: 30px 15px 0 25px;
+  padding: 7px 15px 0 25px;
   width: 60%;
 }
 
@@ -213,25 +213,27 @@ img{ max-width:100%;}
               $('[data-history="' + userData.userId + '"] > .msg_history').append('<div class="incoming_msg"> <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div> <div class="received_msg"> <div class="received_withd_msg"> <p>'+userData.message+'</p> <span class="time_date">'+date+'</span></div> </div> </div>');
             }
             if(!$('#' + userData.userId).hasClass('active_chat')){
-                var text_not_read = $('[data-non-read-user="'+userData.userId+'"]').addClass("new_message");
+                $('[data-non-read-user="'+userData.userId+'"]').addClass("new_message");
             }
             $('[date-time-user="'+userData.userId+'"]').text(date);
         });
-        socket.on('manager-update', function(users){
+        socket.on('manager-update', function(users, props){
             users.forEach(function (user) {
                 if(!in_array(user, users_dynamic)){
-                    $('#users').append(
+                    console.log(props);
+                    $('#users').prepend(
                       '<div class="chat_list" id='+user+'>' +
                         '<div class="chat_people">' +
                           '<div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>' +
                           '<div class="chat_ib">' +
-                            '<h5  data-non-read-user="'+user+'">'+user+'<span class="chat_date" date-time-user="'+user+'">date</span></h5>' +
+                            '<h5  data-non-read-user="'+user+'">'+props.fio+'<span class="chat_date" date-time-user="'+user+'">date</span></h5>' +
                             '<p date-last-message-user="'+user+'"></p>' +
                           '</div>' +
                         '</div>' +
                       '</div>');
+
                       $('.inbox_msg').append(
-                        '<div class="mesgs d-none" data-history="'+user+'"><div class="msg_history"></div><div class="type_msg"><div class="input_msg_write"><input type="text" class="write_msg" data-message-user="'+user+'" placeholder="Type a message" /><button class="msg_send_btn" data-send-user="'+user+'" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button></div></div></div>'
+                        '<div class="mesgs d-none" data-history="'+user+'"><div class="nav-info">Город: '+props.city+', Школа: '+props.school+' Email: '+props.email+'</div><div class="msg_history"></div><div class="type_msg"><div class="input_msg_write"><input type="text" class="write_msg" data-message-user="'+user+'" placeholder="Type a message" /><button class="msg_send_btn" data-send-user="'+user+'" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button></div></div></div>'
                       );
                     users_dynamic.push(user);
                     $('[data-send-user="'+user+'"]').on("click", function (){
@@ -249,16 +251,6 @@ img{ max-width:100%;}
                         $('#' + userId).addClass('active_chat');
                         $('[data-history="'+userId+'"]').removeClass('d-none');
                     });
-                }
-            });
-            users_dynamic.forEach(function (user) {
-                if(!in_array(user, users)){
-                    var userIndex = users_dynamic.indexOf(user);
-                    if(userIndex != -1){
-                        delete users_dynamic[userIndex];
-                        $('#' + user).remove();
-                        $('#support_panel_for_' + user).remove();
-                    }
                 }
             });
         });

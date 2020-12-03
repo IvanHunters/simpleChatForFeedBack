@@ -26,24 +26,17 @@ io.on('connection', (socket) => {
         socket.join(room);
         if(room=="manager"){
         } else{
-            var usersObj = io.sockets.adapter.rooms.get('users');
-            if(usersObj)
-            {
-                var clients = Array.from(usersObj);
-                socket.to('manager').emit('manager-update', clients);
-            }else{
-                socket.to('manager').emit('manager-update', []);
-            }
-          connection.query('SELECT * FROM users WHERE id = \''+socket.id+'\'', function (error, results, fields) {
-            if (!results[0]){
-              connection.query("INSERT INTO users SET online=1," +
-                                " id='"+socket.id+
-                                "', fio='"+params.fio+
-                                "', email='"+params.email+
-                                "', school='"+params.school+
-                                "', city='"+params.city+"'");
-            }
-          });
+              connection.query('SELECT * FROM users WHERE id = \''+socket.id+'\'', function (error, results, fields) {
+                if (!results[0]){
+                  connection.query("INSERT INTO users SET online=1," +
+                                    " id='"+socket.id+
+                                    "', fio='"+params.fio+
+                                    "', email='"+params.email+
+                                    "', school='"+params.school+
+                                    "', city='"+params.city+"'");
+                }
+                socket.to('manager').emit('manager-update', [socket.id], params);
+              });
         }
     });
     socket.on('sendUserMessage', function (messageData) {
@@ -91,14 +84,6 @@ io.on('connection', (socket) => {
         var userId = socket.id;
         connection.query("UPDATE users SET online=0 " +
                           "WHERE id = '"+userId+"'");
-        var usersObj = io.sockets.adapter.rooms.get('users');
-        if(usersObj)
-        {
-            var clients = Array.from(usersObj);
-            socket.to('manager').emit('manager-update', clients);
-        }else{
-            socket.to('manager').emit('manager-update', []);
-        }
     });
 });
 
