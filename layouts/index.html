@@ -22,7 +22,7 @@
     <script>
         $(function () {
             var socket = io();
-            socket.emit('connect-user', 'users');
+            socket.emit('connect-user', 'users', {"school":"11", "city": "123", "email": "121@ya.ru", "fio": "123"});
             $('form').submit(function(e){
                 e.preventDefault(); // prevents page reloading
                 socket.emit('chat message', {
