@@ -261,31 +261,24 @@
     </style>
 </head>
 <div class="m-0">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Авторизация</h5>
-            </div>
-            <div class="modal-body">
-                <form>
+    <button type="button" class="btn btn-primary" style="margin: 0 auto; display: block;" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">задать вопрос выступающему</button>
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Авторизация</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                <form id="form-auth">
                     <div class="form-group">
-                        <label for="last-name" class="col-form-label">Имя:</label>
-                        <input type="text" required class="form-control" id="last-name">
+                        <label for="name" class="col-form-label">Имя:</label>
+                        <input type="text" required class="form-control" id="name">
                     </div>
                     <div class="form-group">
-                        <label for="first-name" class="col-form-label">Фамилия:</label>
-                        <input type="text" class="form-control" id="first-name">
-                    </div>
-                    <div class="form-group">
-                        <label for="other-name" class="col-form-label">Отчество: (если есть)</label>
-                        <input type="text" class="form-control" id="other-name">
-                    </div>
-                    <div class="form-group">
-                        <label for="city" class="col-form-label">Город:</label>
-                        <input type="text" class="form-control" id="city">
-                    </div>
-                    <div class="form-group">
-                        <label for="school" class="col-form-label">Школа:</label>
+                        <label for="school" class="col-form-label">Школа, класс:</label>
                         <input type="text" class="form-control" id="school">
                     </div>
                     <div class="form-group">
@@ -293,16 +286,21 @@
                         <input type="email" class="form-control" id="email">
                     </div>
                     <div class="form-group">
-                        <label for="pd" class="col-form-label">Соглашение о персональных данных:</label>
-                        <input type="checkbox" required class="form-control" id="pd">
+                        <label for="text" class="col-form-label">Телефон:</label>
+                        <input type="text" class="form-control" id="phone">
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" required class="col-form-label" id="pd">
+                        <label class="form-check-label" for="pd">Соглашение о персональных данных</label>
                     </div>
                     <div class="modal-footer">
-                        <input type="button" id="auth" class="btn btn-primary" value="Войти"/>
+                        <input type="submit" id="auth" class="btn btn-primary" value="Войти"/>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+</div>
 </div>
 <div class="content container-fluid bootstrap snippets" style="display: none;">
     <div class="row row-broken">
@@ -337,20 +335,20 @@
 
         $(function () {
             var socket = io();
-            $('#auth').on("click", function(){
-                var first_name = $("#first-name").val();
-                var last_name = $("#last-name").val();
-                var other_name = $("#other-name").val();
-                var city = $("#city").val();
+            $('#form-auth').submit(function (ev) {
+                var name = $("#name").val();
+                var phone = $("#phone").val();
                 var school = $("#school").val();
                 var email = $("#email").val();
-
-                if(first_name != '' && validateEmail(email)) {
+                var pd = $('#pd').is(":checked");
+                console.log(pd);
+                if(name != '' && pd) {
+                    $('.modal').modal('hide');
                     socket.emit('connect-user', 'users', {
                         "school": school,
-                        "city": city,
+                        "phone": phone,
                         "email": email,
-                        "fio": first_name + " " + last_name + " " + other_name
+                        "name": name
                     });
                     $('.m-0').fadeOut();
                     $('.container-fluid').fadeIn();
@@ -377,6 +375,7 @@
                         $(".chat-body").animate({ scrollTop: $('.chat-body').prop("scrollHeight")}, 1000);
                     });
                 }
+                ev.preventDefault();
             });
         });
     </script>

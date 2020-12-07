@@ -28,7 +28,7 @@ async function handleMessage(data){
     let messages = await sequelize.query('SELECT * FROM messages WHERE sender = \'' +
         data.id + '\' or recipient = \'' + data.id +
         "'", { type: sequelize.QueryTypes.SELECT});
-    usersData.push({ info: { id: data.id, fio: data.fio, school: data.school, city: data.city, email: data.email}, messages: messages});
+    usersData.push({ info: { id: data.id, name: data.name, school: data.school, phone: data.phone, email: data.email}, messages: messages});
 }
 
 app.get('/', (req, res) => {
@@ -53,10 +53,10 @@ io.on('connection', (socket) => {
                 if (!userData[0]){
                     sequelize.query("INSERT INTO users SET online=1," +
                                     " id='"+socket.id+
-                                    "', fio='"+params.fio+
+                                    "', name='"+params.name+
                                     "', email='"+params.email+
                                     "', school='"+params.school+
-                                    "', city='"+params.city+"'");
+                                    "', phone='"+params.phone+"'");
                 }
                 socket.to('manager').emit('manager-update', [socket.id], params);
         }
