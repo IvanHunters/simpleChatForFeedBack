@@ -1,0 +1,318 @@
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+<!------ Include the above in your HEAD tag ---------->
+
+
+<html>
+<head>
+<style>
+.new_message:first-child::before {
+    background: blue;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-top: 4px;
+    margin-left: 2px;
+    content: "";
+    display: block;
+}
+.container{max-width:1170px; margin:auto;}
+img{ max-width:100%;}
+.inbox_people {
+  background: #f8f8f8 none repeat scroll 0 0;
+  float: left;
+  overflow: hidden;
+  width: 40%; border-right:1px solid #c4c4c4;
+}
+.inbox_msg {
+  border: 1px solid #c4c4c4;
+  clear: both;
+  overflow: hidden;
+}
+.top_spac{ margin: 20px 0 0;}
+
+
+.recent_heading {float: left; width:40%;}
+.srch_bar {
+  display: inline-block;
+  text-align: right;
+  width: 60%; padding:
+}
+.headind_srch{ padding:10px 29px 10px 20px; overflow:hidden; border-bottom:1px solid #c4c4c4;}
+
+.recent_heading h4 {
+  color: #05728f;
+  font-size: 21px;
+  margin: auto;
+}
+.srch_bar input{ border:1px solid #cdcdcd; border-width:0 0 1px 0; width:80%; padding:2px 0 4px 6px; background:none;}
+.srch_bar .input-group-addon button {
+  background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
+  border: medium none;
+  padding: 0;
+  color: #707070;
+  font-size: 18px;
+}
+.srch_bar .input-group-addon { margin: 0 0 0 -27px;}
+
+.chat_ib h5{ font-size:15px; color:#464646; margin:0 0 8px 0;}
+.chat_ib h5 span{ font-size:13px; float:right;}
+.chat_ib p{ font-size:14px; color:#989898; margin:auto}
+.chat_img {
+  float: left;
+  width: 11%;
+}
+.chat_ib {
+  float: left;
+  padding: 0 0 0 15px;
+  width: 88%;
+}
+
+.chat_people{ overflow:hidden; clear:both;}
+.chat_list {
+  border-bottom: 1px solid #c4c4c4;
+  margin: 0;
+  padding: 18px 16px 10px;
+}
+.inbox_chat { height: 550px; overflow-y: scroll;}
+
+.active_chat{ background:#ebebeb;}
+
+.incoming_msg_img {
+  display: inline-block;
+  width: 6%;
+}
+.received_msg {
+  display: inline-block;
+  padding: 0 0 0 10px;
+  vertical-align: top;
+  width: 92%;
+ }
+ .received_withd_msg p {
+  background: #ebebeb none repeat scroll 0 0;
+  border-radius: 3px;
+  color: #646464;
+  font-size: 14px;
+  margin: 0;
+  padding: 5px 10px 5px 12px;
+  width: 100%;
+}
+.time_date {
+  color: #747474;
+  display: block;
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+.received_withd_msg { width: 57%;}
+.mesgs {
+  float: left;
+  padding: 7px 15px 0 25px;
+  width: 60%;
+}
+
+ .sent_msg p {
+  background: #05728f none repeat scroll 0 0;
+  border-radius: 3px;
+  font-size: 14px;
+  margin: 0; color:#fff;
+  padding: 5px 10px 5px 12px;
+  width:100%;
+}
+.outgoing_msg{ overflow:hidden; margin:26px 0 26px;}
+.sent_msg {
+  float: right;
+  width: 46%;
+}
+.input_msg_write input {
+  background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
+  border: medium none;
+  color: #4c4c4c;
+  font-size: 15px;
+  min-height: 48px;
+  width: 100%;
+}
+
+.type_msg {border-top: 1px solid #c4c4c4;position: relative;}
+.msg_send_btn {
+  background: #05728f none repeat scroll 0 0;
+  border: medium none;
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  font-size: 17px;
+  height: 33px;
+  position: absolute;
+  right: 0;
+  top: 11px;
+  width: 33px;
+}
+.messaging { padding: 0 0 50px 0;}
+.msg_history {
+  height: 516px;
+  overflow-y: auto;
+}
+</style>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css" rel="stylesheet"
+
+</head>
+<body>
+<div class="container">
+<h3 class=" text-center">Messaging</h3>
+<div class="messaging">
+      <div class="inbox_msg">
+        <div class="inbox_people">
+          <div class="headind_srch">
+            <div class="recent_heading">
+              <h4>Recent</h4>
+            </div>
+            <!-- <div class="srch_bar">
+              <div class="stylish-input-group">
+                <input type="text" class="search-bar"  placeholder="Search" >
+                <span class="input-group-addon">
+                <button type="button"> <i class="fa fa-search" aria-hidden="true"></i> </button>
+                </span> </div>
+            </div> -->
+          </div>
+          <div class="inbox_chat" id="users">
+              <% data.forEach((user) => { %>
+                  <div class="chat_list" id="<%= user.info.id %>">
+                      <div class="chat_people">
+                          <div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>
+                          <div class="chat_ib">
+                              <h5  data-non-read-user="<%= user.info.id %>"><%= user.info.fio %><span class="chat_date" date-time-user="<%= user.info.id %>">date</span></h5>
+                              <p date-last-message-user="<%= user.info.id %>"></p>
+                          </div>
+                      </div>
+                  </div>
+              <% });%>
+          </div>
+        </div>
+          <% var users = ""; %>
+        <% data.forEach((user) => { %>
+          <% users = users + "'" + user.info.id + "'" + "," %>
+              <div class="mesgs d-none" data-history="<%= user.info.id %>">
+              <div class="nav-info">Город: <%= user.info.city %>, Школа: <%= user.info.school %> Email: <%= user.info.email %></div>
+              <div class="msg_history">
+            <% user.messages.forEach((message) => { %>
+                <% if (message.sender == 'manager') { %>
+                <div class="outgoing_msg">
+                  <div class="sent_msg">
+                      <p><%= message.message %></p>
+                      <span class="time_date"><%= message.date %></span>
+                  </div>
+                </div>
+                <% } else { %>
+                    <div class="incoming_msg">
+                        <div class="incoming_msg_img">
+                            <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil">
+                        </div> <div class="received_msg">
+                            <div class="received_withd_msg">
+                                <p><%= message.message %></p>
+                                <span class="time_date"><%= message.date %></span>
+                            </div>
+                        </div>
+                    </div>
+                <%}%>
+            <% }); %>
+              </div>
+              <div class="type_msg">
+                  <div class="input_msg_write">
+                      <input type="text" class="write_msg" data-message-user="<%=user.info.id%>" placeholder="Type a message" />
+                      <button class="msg_send_btn" data-send-user="<%=user.info.id%>" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button>
+                  </div>
+              </div>
+          </div>
+          <script>
+              $('[data-send-user="<%=user.info.id%>"]').on("click", function (){
+                  var userId = $(this).attr('data-send-user');
+                  var textMessage = $('[data-message-user="'+userId+'"]').val();
+                  $('[data-message-user="'+userId+'"]').val('');
+                  socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+              });
+              $('#<%=user.info.id%>').on("click", function (){
+                  var userId = $(this).attr('id');
+                  $('.mesgs').addClass('d-none');
+                  $('.chat_list').removeClass('active_chat');
+                  $('[data-non-read-user="' + userId + '"]').removeClass("new_message");
+                  $('#' + userId).addClass('active_chat');
+                  $('[data-history="'+userId+'"]').removeClass('d-none');
+              });
+          </script>
+        <% });%>
+      </div>
+
+    </div></div>
+    <script>
+        function in_array(needle, haystack, strict) {
+
+            var found = false, key, strict = !!strict;
+
+            for (key in haystack) {
+                if ((strict && haystack[key] === needle) || (!strict && haystack[key] == needle)) {
+                    found = true;
+                    break;
+                }
+            }
+            return found;
+        }
+
+
+        var users_dynamic = [<%-users%>];
+        var socket = io();
+        socket.emit('connect-user', 'manager', {});
+        socket.on('messageFromUser', function (userData){
+            var date = userData.date;
+            if (userData.name == 'Модератор') {
+              $('[date-last-message-user="'+userData.userId+'"]').text('Вы: ' + userData.message);
+              $('[data-history="' + userData.userId + '"] > .msg_history').append('<div class="outgoing_msg"><div class="sent_msg"><p>'+userData.message+'</p><span class="time_date">'+date+'</span> </div></div>');
+            }else {
+              $('[date-last-message-user="'+userData.userId+'"]').text(userData.message);
+              $('[data-history="' + userData.userId + '"] > .msg_history').append('<div class="incoming_msg"> <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div> <div class="received_msg"> <div class="received_withd_msg"> <p>'+userData.message+'</p> <span class="time_date">'+date+'</span></div> </div> </div>');
+            }
+            if(!$('#' + userData.userId).hasClass('active_chat')){
+                $('[data-non-read-user="'+userData.userId+'"]').addClass("new_message");
+            }
+            $('[date-time-user="'+userData.userId+'"]').text(date);
+            $('[data-history="'+userData.userId+'"] > .msg_history').animate({ scrollTop: $('[data-history="'+userData.userId+'"] > .msg_history').prop("scrollHeight")}, 1000);
+        });
+        socket.on('manager-update', function(users, props){
+            users.forEach(function (user) {
+                if(!in_array(user, users_dynamic)){
+                    $('#users').prepend(
+                      '<div class="chat_list" id='+user+'>' +
+                        '<div class="chat_people">' +
+                          '<div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>' +
+                          '<div class="chat_ib">' +
+                            '<h5  data-non-read-user="'+user+'">'+props.fio+'<span class="chat_date" date-time-user="'+user+'">date</span></h5>' +
+                            '<p date-last-message-user="'+user+'"></p>' +
+                          '</div>' +
+                        '</div>' +
+                      '</div>');
+
+                      $('.inbox_msg').append(
+                        '<div class="mesgs d-none" data-history="'+user+'"><div class="nav-info">Город: '+props.city+', Школа: '+props.school+' Email: '+props.email+'</div><div class="msg_history"></div><div class="type_msg"><div class="input_msg_write"><input type="text" class="write_msg" data-message-user="'+user+'" placeholder="Type a message" /><button class="msg_send_btn" data-send-user="'+user+'" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button></div></div></div>'
+                      );
+                    users_dynamic.push(user);
+                    $('[data-send-user="'+user+'"]').on("click", function (){
+                        var userId = $(this).attr('data-send-user');
+                        var textMessage = $('[data-message-user="' + userId + '"]').val();
+                        $('[data-message-user="' + userId + '"]').val('');
+                        socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+                    });
+
+                    $('#' + user).on("click", function (){
+                        var userId = $(this).attr('id');
+                        $('.mesgs').addClass('d-none');
+                        $('.chat_list').removeClass('active_chat');
+                        $('[data-non-read-user="' + userId + '"]').removeClass("new_message");
+                        $('#' + userId).addClass('active_chat');
+                        $('[data-history="'+userId+'"]').removeClass('d-none');
+                    });
+                }
+            });
+        });
+    </script>
+    </body>
+    </html>

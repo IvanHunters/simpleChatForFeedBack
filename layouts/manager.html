@@ -1,259 +1,378 @@
-<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-<script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
-<!------ Include the above in your HEAD tag ---------->
-
-
 <html>
 <head>
-<style>
-.new_message:first-child::before {
-    background: blue;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-top: 4px;
-    margin-left: 2px;
-    content: "";
-    display: block;
-}
-.container{max-width:1170px; margin:auto;}
-img{ max-width:100%;}
-.inbox_people {
-  background: #f8f8f8 none repeat scroll 0 0;
-  float: left;
-  overflow: hidden;
-  width: 40%; border-right:1px solid #c4c4c4;
-}
-.inbox_msg {
-  border: 1px solid #c4c4c4;
-  clear: both;
-  overflow: hidden;
-}
-.top_spac{ margin: 20px 0 0;}
-
-
-.recent_heading {float: left; width:40%;}
-.srch_bar {
-  display: inline-block;
-  text-align: right;
-  width: 60%; padding:
-}
-.headind_srch{ padding:10px 29px 10px 20px; overflow:hidden; border-bottom:1px solid #c4c4c4;}
-
-.recent_heading h4 {
-  color: #05728f;
-  font-size: 21px;
-  margin: auto;
-}
-.srch_bar input{ border:1px solid #cdcdcd; border-width:0 0 1px 0; width:80%; padding:2px 0 4px 6px; background:none;}
-.srch_bar .input-group-addon button {
-  background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
-  border: medium none;
-  padding: 0;
-  color: #707070;
-  font-size: 18px;
-}
-.srch_bar .input-group-addon { margin: 0 0 0 -27px;}
-
-.chat_ib h5{ font-size:15px; color:#464646; margin:0 0 8px 0;}
-.chat_ib h5 span{ font-size:13px; float:right;}
-.chat_ib p{ font-size:14px; color:#989898; margin:auto}
-.chat_img {
-  float: left;
-  width: 11%;
-}
-.chat_ib {
-  float: left;
-  padding: 0 0 0 15px;
-  width: 88%;
-}
-
-.chat_people{ overflow:hidden; clear:both;}
-.chat_list {
-  border-bottom: 1px solid #c4c4c4;
-  margin: 0;
-  padding: 18px 16px 10px;
-}
-.inbox_chat { height: 550px; overflow-y: scroll;}
-
-.active_chat{ background:#ebebeb;}
-
-.incoming_msg_img {
-  display: inline-block;
-  width: 6%;
-}
-.received_msg {
-  display: inline-block;
-  padding: 0 0 0 10px;
-  vertical-align: top;
-  width: 92%;
- }
- .received_withd_msg p {
-  background: #ebebeb none repeat scroll 0 0;
-  border-radius: 3px;
-  color: #646464;
-  font-size: 14px;
-  margin: 0;
-  padding: 5px 10px 5px 12px;
-  width: 100%;
-}
-.time_date {
-  color: #747474;
-  display: block;
-  font-size: 12px;
-  margin: 8px 0 0;
-}
-.received_withd_msg { width: 57%;}
-.mesgs {
-  float: left;
-  padding: 7px 15px 0 25px;
-  width: 60%;
-}
-
- .sent_msg p {
-  background: #05728f none repeat scroll 0 0;
-  border-radius: 3px;
-  font-size: 14px;
-  margin: 0; color:#fff;
-  padding: 5px 10px 5px 12px;
-  width:100%;
-}
-.outgoing_msg{ overflow:hidden; margin:26px 0 26px;}
-.sent_msg {
-  float: right;
-  width: 46%;
-}
-.input_msg_write input {
-  background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
-  border: medium none;
-  color: #4c4c4c;
-  font-size: 15px;
-  min-height: 48px;
-  width: 100%;
-}
-
-.type_msg {border-top: 1px solid #c4c4c4;position: relative;}
-.msg_send_btn {
-  background: #05728f none repeat scroll 0 0;
-  border: medium none;
-  border-radius: 50%;
-  color: #fff;
-  cursor: pointer;
-  font-size: 17px;
-  height: 33px;
-  position: absolute;
-  right: 0;
-  top: 11px;
-  width: 33px;
-}
-.messaging { padding: 0 0 50px 0;}
-.msg_history {
-  height: 516px;
-  overflow-y: auto;
-}
-</style>
-<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.css" type="text/css" rel="stylesheet"
-
-</head>
-<body>
-<div class="container">
-<h3 class=" text-center">Messaging</h3>
-<div class="messaging">
-      <div class="inbox_msg">
-        <div class="inbox_people">
-          <div class="headind_srch">
-            <div class="recent_heading">
-              <h4>Recent</h4>
-            </div>
-            <!-- <div class="srch_bar">
-              <div class="stylish-input-group">
-                <input type="text" class="search-bar"  placeholder="Search" >
-                <span class="input-group-addon">
-                <button type="button"> <i class="fa fa-search" aria-hidden="true"></i> </button>
-                </span> </div>
-            </div> -->
-          </div>
-          <div class="inbox_chat" id="users">
-
-          </div>
-        </div>
-      </div>
-
-
-      <p class="text-center top_spac"> Design by <a target="_blank" href="#">Sunil Rajput</a></p>
-
-    </div></div>
-    <script>
-        function in_array(needle, haystack, strict) {
-
-            var found = false, key, strict = !!strict;
-
-            for (key in haystack) {
-                if ((strict && haystack[key] === needle) || (!strict && haystack[key] == needle)) {
-                    found = true;
-                    break;
-                }
-            }
-            return found;
+    <script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+    <script src="https://cdn.socket.io/socket.io-3.0.1.min.js"></script>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+    <title>Socket.IO chat</title>
+    <style>
+        .m-0{
+            margin: 0 auto !important;
+            display: block;
+            width: 50%;
+        }
+        body{
+            margin-top:20px;
+            background:#eee;
+        }
+        .row.row-broken {
+            padding-bottom: 0;
+        }
+        .col-inside-lg {
+            padding: 20px;
+        }
+        .chat {
+            height: calc(100vh - 180px);
+        }
+        .decor-default {
+            background-color: #ffffff;
+        }
+        .chat-users h6 {
+            font-size: 20px;
+            margin: 0 0 20px;
+        }
+        .chat-users .user {
+            position: relative;
+            padding: 0 0 0 50px;
+            display: block;
+            cursor: pointer;
+            margin: 0 0 20px;
+        }
+        .chat-users .user .avatar {
+            top: 0;
+            left: 0;
+        }
+        .chat .avatar {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+        }
+        .chat .avatar img {
+            display: block;
+            border-radius: 20px;
+            height: 100%;
+        }
+        .chat .avatar .status.off {
+            border: 1px solid #5a5a5a;
+            background: #ffffff;
+        }
+        .chat .avatar .status.online {
+            background: #4caf50;
+        }
+        .chat .avatar .status.busy {
+            background: #ffc107;
+        }
+        .chat .avatar .status.offline {
+            background: #ed4e6e;
+        }
+        .chat-users .user .status {
+            bottom: 0;
+            left: 28px;
+        }
+        .chat .avatar .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 5px;
+            position: absolute;
+        }
+        .chat-users .user .name {
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 20px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .chat-users .user .mood {
+            font: 200 14px/20px "Raleway", sans-serif;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
+        /*****************CHAT BODY *******************/
+        .chat-body h6 {
+            font-size: 20px;
+            margin: 0 0 20px;
+        }
+        .chat-body .answer.left {
+            padding: 0 0 0 58px;
+            text-align: left;
+            float: left;
+        }
+        .chat-body .answer {
+            position: relative;
+            max-width: 600px;
+            overflow: hidden;
+            clear: both;
+        }
+        .chat-body .answer.left .avatar {
+            left: 0;
+        }
+        .chat-body .answer .avatar {
+            bottom: 36px;
+        }
+        .chat .avatar {
+            width: 40px;
+            height: 40px;
+            position: absolute;
+        }
+        .chat .avatar img {
+            display: block;
+            border-radius: 20px;
+            height: 100%;
+        }
+        .chat-body .answer .name {
+            font-size: 14px;
+            line-height: 36px;
+        }
+        .chat-body .answer.left .avatar .status {
+            right: 4px;
+        }
+        .chat-body .answer .avatar .status {
+            bottom: 0;
+        }
+        .chat-body .answer.left .text {
+            background: #ebebeb;
+            color: #333333;
+            border-radius: 8px 8px 8px 0;
+        }
+        .chat-body .answer .text {
+            padding: 12px;
+            font-size: 16px;
+            line-height: 26px;
+            position: relative;
+        }
+        .chat-body .answer.left .text:before {
+            left: -30px;
+            border-right-color: #ebebeb;
+            border-right-width: 12px;
+        }
+        .chat-body .answer .text:before {
+            content: '';
+            display: block;
+            position: absolute;
+            bottom: 0;
+            border: 18px solid transparent;
+            border-bottom-width: 0;
+        }
+        .chat-body .answer.left .time {
+            padding-left: 12px;
+            color: #333333;
+        }
+        .chat-body .answer .time {
+            font-size: 16px;
+            line-height: 36px;
+            position: relative;
+            padding-bottom: 1px;
+        }
+        /*RIGHT*/
+        .chat-body .answer.right {
+            padding: 0 58px 0 0;
+            text-align: right;
+            float: right;
+        }
 
-        var users_dynamic = [];
-        var socket = io();
-        socket.emit('connect-user', 'manager', {});
-        socket.on('messageFromUser', function (userData){
-            var date = userData.date;
-            if (userData.name == 'Модератор') {
-              $('[date-last-message-user="'+userData.userId+'"]').text('Вы: ' + userData.message);
-              $('[data-history="' + userData.userId + '"] > .msg_history').append('<div class="outgoing_msg"><div class="sent_msg"><p>'+userData.message+'</p><span class="time_date">'+date+'</span> </div></div>');
-            }else {
-              $('[date-last-message-user="'+userData.userId+'"]').text(userData.message);
-              $('[data-history="' + userData.userId + '"] > .msg_history').append('<div class="incoming_msg"> <div class="incoming_msg_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div> <div class="received_msg"> <div class="received_withd_msg"> <p>'+userData.message+'</p> <span class="time_date">'+date+'</span></div> </div> </div>');
-            }
-            if(!$('#' + userData.userId).hasClass('active_chat')){
-                $('[data-non-read-user="'+userData.userId+'"]').addClass("new_message");
-            }
-            $('[date-time-user="'+userData.userId+'"]').text(date);
-        });
-        socket.on('manager-update', function(users, props){
-            users.forEach(function (user) {
-                if(!in_array(user, users_dynamic)){
-                    console.log(props);
-                    $('#users').prepend(
-                      '<div class="chat_list" id='+user+'>' +
-                        '<div class="chat_people">' +
-                          '<div class="chat_img"> <img src="https://ptetutorials.com/images/user-profile.png" alt="sunil"> </div>' +
-                          '<div class="chat_ib">' +
-                            '<h5  data-non-read-user="'+user+'">'+props.fio+'<span class="chat_date" date-time-user="'+user+'">date</span></h5>' +
-                            '<p date-last-message-user="'+user+'"></p>' +
-                          '</div>' +
-                        '</div>' +
-                      '</div>');
+        .chat-body .answer.right .avatar {
+            right: 0;
+        }
+        .chat-body .answer.right .avatar .status {
+            left: 4px;
+        }
+        .chat-body .answer.right .text {
+            background: #7266ba;
+            color: #ffffff;
+            border-radius: 8px 8px 0 8px;
+        }
+        .chat-body .answer.right .text:before {
+            right: -30px;
+            border-left-color: #7266ba;
+            border-left-width: 12px;
+        }
+        .chat-body .answer.right .time {
+            padding-right: 12px;
+            color: #333333;
+        }
 
-                      $('.inbox_msg').append(
-                        '<div class="mesgs d-none" data-history="'+user+'"><div class="nav-info">Город: '+props.city+', Школа: '+props.school+' Email: '+props.email+'</div><div class="msg_history"></div><div class="type_msg"><div class="input_msg_write"><input type="text" class="write_msg" data-message-user="'+user+'" placeholder="Type a message" /><button class="msg_send_btn" data-send-user="'+user+'" type="button"><i class="fa fa-paper-plane-o" aria-hidden="true"></i></button></div></div></div>'
-                      );
-                    users_dynamic.push(user);
-                    $('[data-send-user="'+user+'"]').on("click", function (){
-                        var userId = $(this).attr('data-send-user');
-                        var textMessage = $('[data-message-user="' + userId + '"]').val();
-                        $('[data-message-user="' + userId + '"]').val('');
-                        socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+        /**************ADD FORM ***************/
+        .chat-body .answer-add {
+            clear: both;
+            position: relative;
+            margin: 20px -20px -20px;
+            padding: 20px;
+            background: #46be8a;
+        }
+        .chat-body .answer-add input {
+            border: none;
+            background: none;
+            display: block;
+            width: 100%;
+            font-size: 16px;
+            line-height: 20px;
+            padding: 0;
+            color: #ffffff;
+        }
+        .chat input {
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+        .chat-body .answer-add .answer-btn-1 {
+            background: url("http://91.234.35.26/iwiki-admin/v1.0.0/admin/img/icon-40.png") 50% 50% no-repeat;
+            right: 56px;
+        }
+        .chat-body .answer-add .answer-btn {
+            display: block;
+            cursor: pointer;
+            width: 36px;
+            height: 36px;
+            position: absolute;
+            top: 50%;
+            margin-top: -18px;
+        }
+        .chat-body .answer-add .answer-btn-2 {
+            background: url("http://91.234.35.26/iwiki-admin/v1.0.0/admin/img/icon-41.png") 50% 50% no-repeat;
+            right: 20px;
+        }
+        .chat input::-webkit-input-placeholder {
+            color: #fff;
+        }
+
+        .chat input:-moz-placeholder { /* Firefox 18- */
+            color: #fff;
+        }
+
+        .chat input::-moz-placeholder {  /* Firefox 19+ */
+            color: #fff;
+        }
+
+        .chat input:-ms-input-placeholder {
+            color: #fff;
+        }
+        .chat input {
+            -webkit-appearance: none;
+            border-radius: 0;
+        }
+    </style>
+</head>
+<div class="m-0">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Авторизация</h5>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group">
+                        <label for="last-name" class="col-form-label">Имя:</label>
+                        <input type="text" required class="form-control" id="last-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="first-name" class="col-form-label">Фамилия:</label>
+                        <input type="text" class="form-control" id="first-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="other-name" class="col-form-label">Отчество: (если есть)</label>
+                        <input type="text" class="form-control" id="other-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="city" class="col-form-label">Город:</label>
+                        <input type="text" class="form-control" id="city">
+                    </div>
+                    <div class="form-group">
+                        <label for="school" class="col-form-label">Школа:</label>
+                        <input type="text" class="form-control" id="school">
+                    </div>
+                    <div class="form-group">
+                        <label for="email" class="col-form-label">Email:</label>
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="pd" class="col-form-label">Соглашение о персональных данных:</label>
+                        <input type="checkbox" required class="form-control" id="pd">
+                    </div>
+                    <div class="modal-footer">
+                        <input type="button" id="auth" class="btn btn-primary" value="Войти"/>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="content container-fluid bootstrap snippets" style="display: none;">
+    <div class="row row-broken">
+        <div class="col-sm-12 col-xs-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
+            <div class="col-inside-lg decor-default">
+                <div class="chat-body">
+
+                    <div id="chat-messages">
+                        <div class="answer left">
+                            <div class="avatar">
+                                <img src="https://ptetutorials.com/images/user-profile.png" alt="User name">
+                            </div>
+                            <div class="name">Модератор</div>
+                            <div class="text">Здравствуйте!<br>Здесь Вы можете задать вопрос.</div>
+                            <div class="time"></div>
+                        </div>
+                    </div>
+                    <div class="answer-add">
+                        <input placeholder="Введите сообщение и нажмите enter">
+                        <span class="answer-btn answer-btn-2"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    <script>
+        function validateEmail($email) {
+            var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+            return emailReg.test( $email );
+        }
+
+        $(function () {
+            var socket = io();
+            $('#auth').on("click", function(){
+                var first_name = $("#first-name").val();
+                var last_name = $("#last-name").val();
+                var other_name = $("#other-name").val();
+                var city = $("#city").val();
+                var school = $("#school").val();
+                var email = $("#email").val();
+
+                if(first_name != '' && last_name != '' && city != '' && school != '' && validateEmail(email)) {
+                    socket.emit('connect-user', 'users', {
+                        "school": school,
+                        "city": city,
+                        "email": email,
+                        "fio": first_name + " " + last_name + " " + other_name
                     });
-
-                    $('#' + user).on("click", function (){
-                        var userId = $(this).attr('id');
-                        $('.mesgs').addClass('d-none');
-                        $('.chat_list').removeClass('active_chat');
-                        $('[data-non-read-user="' + userId + '"]').removeClass("new_message");
-                        $('#' + userId).addClass('active_chat');
-                        $('[data-history="'+userId+'"]').removeClass('d-none');
+                    $('.m-0').fadeOut();
+                    $('.container-fluid').fadeIn();
+                    $('.answer-add').keypress(function(event){
+                        var keycode = (event.keyCode ? event.keyCode : event.which);
+                        if(keycode == '13'){
+                            socket.emit('chat message', {
+                                "name": "Вы",
+                                "message": $('.answer-add > input').val()
+                            });
+                            $('.answer-add > input').val('');
+                        }
+                    });
+                    socket.on('chat message', function(msg){
+                        if(msg.name == 'Модератор'){
+                            $('#chat-messages').append(
+                                '<div class="answer left"><div class="avatar"><img src="https://ptetutorials.com/images/user-profile.png" alt="User name"></div> <div class="name">Модератор</div> <div class="text">'+msg.message+'</div><div class="time">'+msg.date+'</div></div>'
+                            );
+                        } else {
+                            $('#chat-messages').append(
+                                '<div class="answer right"> <div class="avatar"> </div> <div class="name">Вы</div> <div class="text">'+msg.message+'</div> <div class="time">'+msg.date+'</div> </div>'
+                            );
+                        }
                     });
                 }
             });
         });
     </script>
-    </body>
-    </html>
+</body>
+</html>

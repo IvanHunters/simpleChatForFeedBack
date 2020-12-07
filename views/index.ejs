@@ -23,7 +23,7 @@
             padding: 20px;
         }
         .chat {
-            height: calc(100vh - 180px);
+            height: 500px;
         }
         .decor-default {
             background-color: #ffffff;
@@ -92,6 +92,11 @@
         }
 
         /*****************CHAT BODY *******************/
+        .chat-body {
+            overflow-y: auto;
+            height: 90%;
+
+        }
         .chat-body h6 {
             font-size: 20px;
             margin: 0 0 20px;
@@ -196,14 +201,14 @@
         }
 
         /**************ADD FORM ***************/
-        .chat-body .answer-add {
+        .answer-add {
             clear: both;
             position: relative;
             margin: 20px -20px -20px;
             padding: 20px;
             background: #46be8a;
         }
-        .chat-body .answer-add input {
+        .answer-add input {
             border: none;
             background: none;
             display: block;
@@ -217,11 +222,11 @@
             -webkit-appearance: none;
             border-radius: 0;
         }
-        .chat-body .answer-add .answer-btn-1 {
+        .answer-add .answer-btn-1 {
             background: url("http://91.234.35.26/iwiki-admin/v1.0.0/admin/img/icon-40.png") 50% 50% no-repeat;
             right: 56px;
         }
-        .chat-body .answer-add .answer-btn {
+        .answer-add .answer-btn {
             display: block;
             cursor: pointer;
             width: 36px;
@@ -230,7 +235,7 @@
             top: 50%;
             margin-top: -18px;
         }
-        .chat-body .answer-add .answer-btn-2 {
+        .answer-add .answer-btn-2 {
             background: url("http://91.234.35.26/iwiki-admin/v1.0.0/admin/img/icon-41.png") 50% 50% no-repeat;
             right: 20px;
         }
@@ -264,12 +269,12 @@
             <div class="modal-body">
                 <form>
                     <div class="form-group">
-                        <label for="first-name" class="col-form-label">Фамилия:</label>
-                        <input type="text" required class="form-control" id="first-name">
-                    </div>
-                    <div class="form-group">
                         <label for="last-name" class="col-form-label">Имя:</label>
                         <input type="text" required class="form-control" id="last-name">
+                    </div>
+                    <div class="form-group">
+                        <label for="first-name" class="col-form-label">Фамилия:</label>
+                        <input type="text" class="form-control" id="first-name">
                     </div>
                     <div class="form-group">
                         <label for="other-name" class="col-form-label">Отчество: (если есть)</label>
@@ -277,15 +282,19 @@
                     </div>
                     <div class="form-group">
                         <label for="city" class="col-form-label">Город:</label>
-                        <input type="text" required class="form-control" id="city">
+                        <input type="text" class="form-control" id="city">
                     </div>
                     <div class="form-group">
                         <label for="school" class="col-form-label">Школа:</label>
-                        <input type="text" required class="form-control" id="school">
+                        <input type="text" class="form-control" id="school">
                     </div>
                     <div class="form-group">
                         <label for="email" class="col-form-label">Email:</label>
-                        <input type="email" required class="form-control" id="email">
+                        <input type="email" class="form-control" id="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="pd" class="col-form-label">Соглашение о персональных данных:</label>
+                        <input type="checkbox" required class="form-control" id="pd">
                     </div>
                     <div class="modal-footer">
                         <input type="button" id="auth" class="btn btn-primary" value="Войти"/>
@@ -297,15 +306,24 @@
 </div>
 <div class="content container-fluid bootstrap snippets" style="display: none;">
     <div class="row row-broken">
-        <div class="col-sm-12 col-xs-12 chat" style="overflow: hidden; outline: none;" tabindex="5001">
+        <div class="col-sm-12 col-xs-12 chat" tabindex="5001">
             <div class="col-inside-lg decor-default">
                 <div class="chat-body">
 
-                    <div id="chat-messages"></div>
-                    <div class="answer-add">
-                        <input placeholder="Введите сообщение и нажмите enter">
-                        <span class="answer-btn answer-btn-2"></span>
+                    <div id="chat-messages">
+                        <div class="answer left">
+                            <div class="avatar">
+                                <img src="https://ptetutorials.com/images/user-profile.png" alt="User name">
+                            </div>
+                            <div class="name">Модератор</div>
+                            <div class="text">Здравствуйте!<br>Здесь Вы можете задать вопрос.</div>
+                            <div class="time"></div>
+                        </div>
                     </div>
+                </div>
+                <div class="answer-add">
+                    <input placeholder="Введите сообщение и нажмите enter">
+                    <span class="answer-btn answer-btn-2"></span>
                 </div>
             </div>
         </div>
@@ -327,7 +345,7 @@
                 var school = $("#school").val();
                 var email = $("#email").val();
 
-                if(first_name != '' && last_name != '' && city != '' && school != '' && validateEmail(email)) {
+                if(first_name != '' && validateEmail(email)) {
                     socket.emit('connect-user', 'users', {
                         "school": school,
                         "city": city,
@@ -356,6 +374,7 @@
                                 '<div class="answer right"> <div class="avatar"> </div> <div class="name">Вы</div> <div class="text">'+msg.message+'</div> <div class="time">'+msg.date+'</div> </div>'
                             );
                         }
+                        $(".chat-body").animate({ scrollTop: $('.chat-body').prop("scrollHeight")}, 1000);
                     });
                 }
             });
