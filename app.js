@@ -6,6 +6,8 @@ const Sequelize = require('sequelize');
 var sequelize = new Sequelize('support_chat', 'chat', '123123', {
     dialect: 'mariadb'
 });
+var session = require('express-session');
+var bodyParser = require('body-parser')
 
 const start = async () => {
     try {
@@ -22,6 +24,29 @@ start();
 
 process.env.TZ = 'Europe/Volgograd';
 app.set('view engine', 'ejs');
+
+var sess = {
+    secret: 'keyboard cat',
+    cookie: {}
+}
+
+if (app.get('env') === 'production') {
+    app.set('trust proxy', 1) // trust first proxy
+    sess.cookie.secure = true // serve secure cookies
+}
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json())
+
+// app.use(function (req, res) {
+//     res.setHeader('Content-Type', 'text/plain')
+//     res.write('you posted:\n')
+//     res.end(JSON.stringify(req.body, null, 2))
+// })
+
+app.use(session(sess))
+
 let usersData = [];
 
 async function handleMessage(data){
@@ -35,18 +60,39 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 app.get('/manager', async (req, res) => {
-    usersData = [];
-    let users = await sequelize.query('SELECT * FROM users ORDER BY created DESC LIMIT 50', { type: sequelize.QueryTypes.SELECT});
-    for (const item of users) {
-        await handleMessage(item);
+    if (req.session.moderator) {
+        usersData = [];
+        let users = await sequelize.query('SELECT * FROM users ORDER BY created DESC LIMIT 50', { type: sequelize.QueryTypes.SELECT});
+        for (const item of users) {
+            await handleMessage(item);
+        }
+        res.render('manager', {data: usersData});
+    } else {
+        res.render('auth', {error: false});
     }
-    res.render('manager', {data: usersData});
+});
+
+app.post('/manager', async (req, res) => {
+    let request = req.body;
+    if (request.username == 'moderator' && request.password == 'FyJ5h463')
+    {
+        req.session.moderator = 1;
+        usersData = [];
+        let users = await sequelize.query('SELECT * FROM users ORDER BY created DESC LIMIT 50', { type: sequelize.QueryTypes.SELECT});
+        for (const item of users) {
+            await handleMessage(item);
+        }
+        res.render('manager', {data: usersData});
+    } else {
+        res.render('auth', {error: "Неверный логин или пароль"});
+    }
 });
 
 var users = [];
 io.on('connection', (socket) => {
     socket.on('connect-user', async function(room, params) {
-        socket.join(room);
+        if(room == 'users' || (room == "manager" && params.password == 'FyJ5h463'))
+            socket.join(room);
         if(room=="manager"){
         } else{
             let userData = await sequelize.query('SELECT * FROM users WHERE id = \''+socket.id+'\'', { type: sequelize.QueryTypes.SELECT});

@@ -261,7 +261,7 @@ img{ max-width:100%;}
 
         var users_dynamic = [<%-users%>];
         var socket = io();
-        socket.emit('connect-user', 'manager', {});
+        socket.emit('connect-user', 'manager', {password: 'FyJ5h463'});
         socket.on('messageFromUser', function (userData){
             var date = userData.date;
             if (userData.name == 'Модератор') {
