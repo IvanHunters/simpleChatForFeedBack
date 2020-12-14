@@ -231,6 +231,15 @@ img{ max-width:100%;}
                   $('[data-message-user="'+userId+'"]').val('');
                   socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
               });
+              $('[data-message-user="<%=user.info.id%>"]').keypress(function(event){
+                  var keycode = (event.keyCode ? event.keyCode : event.which);
+                  if(keycode == '13'){
+                      var userId = $(this).attr('data-message-user');
+                      var textMessage = $(this).val();
+                      $(this).val('');
+                      socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+                  }
+              });
               $('#<%=user.info.id%>').on("click", function (){
                   var userId = $(this).attr('id');
                   $('.mesgs').addClass('d-none');
@@ -300,6 +309,15 @@ img{ max-width:100%;}
                         var textMessage = $('[data-message-user="' + userId + '"]').val();
                         $('[data-message-user="' + userId + '"]').val('');
                         socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+                    });
+                    $('[data-message-user="'+user+'"]').keypress(function(event){
+                        var keycode = (event.keyCode ? event.keyCode : event.which);
+                        if(keycode == '13'){
+                            var userId = $(this).attr('data-message-user');
+                            var textMessage = $(this).val();
+                            $(this).val('');
+                            socket.emit('sendUserMessage', {"user": userId, "message": textMessage});
+                        }
                     });
 
                     $('#' + user).on("click", function (){

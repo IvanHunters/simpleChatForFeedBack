@@ -7,7 +7,8 @@ var sequelize = new Sequelize('support_chat', 'chat', '123123', {
     dialect: 'mariadb'
 });
 var session = require('express-session');
-var bodyParser = require('body-parser')
+var bodyParser = require('body-parser');
+var md5 = require('md5');
 
 const start = async () => {
     try {
@@ -56,9 +57,42 @@ async function handleMessage(data){
     usersData.push({ info: { id: data.id, name: data.name, school: data.school, phone: data.phone, email: data.email}, messages: messages});
 }
 
-app.get('/', (req, res) => {
-    res.render('index');
+app.get('/', async (req, res) => {
+    res.render('index', {data: usersData});
 });
+
+app.post('/', async (req, res) => {
+    let request = req.body;
+
+    if (request.name)
+    {
+        var access_token = md5( Math.floor(Math.random() * Math.floor(100000)) + dateFormat(new Date(), 'h:MM:ss    |    d.m.yyyy') + Math.floor(Math.random() * Math.floor(100000)));
+        console.log(access_token);
+        if(!request.name) {
+            res.end('Name not found');
+        }
+        if(!request.email){
+            request.email = "";
+        }
+        if(!request.school){
+            request.school = "";
+        }
+        if(!request.phone){
+            request.phone = "";
+        }
+        let newUser = await sequelize.query("INSERT INTO users_token SET " +
+            "username='"+request.name+
+            "', email='"+request.email+
+            "', school='"+request.school.toString()+
+            "', phone='"+request.phone.toString()+
+            "', access_token='"+access_token+"'");
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify({access_token: access_token}));
+    } else {
+        //res.render('auth-user', {error: "Неверный логин или пароль"});
+    }
+});
+
 app.get('/manager', async (req, res) => {
     if (req.session.moderator) {
         usersData = [];
@@ -89,22 +123,33 @@ app.post('/manager', async (req, res) => {
 });
 
 var users = [];
+var basket = {};
 io.on('connection', (socket) => {
     socket.on('connect-user', async function(room, params) {
         if(room == 'users' || (room == "manager" && params.password == 'FyJ5h463'))
             socket.join(room);
         if(room=="manager"){
-        } else{
-            let userData = await sequelize.query('SELECT * FROM users WHERE id = \''+socket.id+'\'', { type: sequelize.QueryTypes.SELECT});
-                if (!userData[0]){
-                    sequelize.query("INSERT INTO users SET online=1," +
-                                    " id='"+socket.id+
-                                    "', name='"+params.name+
-                                    "', email='"+params.email+
-                                    "', school='"+params.school+
-                                    "', phone='"+params.phone+"'");
-                }
-                socket.to('manager').emit('manager-update', [socket.id], params);
+        } else {
+            let userToken = await sequelize.query('SELECT * FROM users_token WHERE access_token = \''+params.access_token+'\'', { type: sequelize.QueryTypes.SELECT});
+            if (userToken[0]) {
+                    if (!userToken[0].socket_id) {
+                        socket.userId = socket.id;
+                        sequelize.query("INSERT INTO users SET online=1," +
+                            " id='" + socket.id +
+                            "', name='" + userToken[0].username +
+                            "', email='" + userToken[0].email +
+                            "', school='" + userToken[0].school +
+                            "', phone='" + userToken[0].phone + "'");
+                        sequelize.query("UPDATE users_token SET socket_id='"+socket.id+"' WHERE id = '"+userToken[0]['id']+"'");
+                        userToken[0].name = userToken[0].username;
+                        basket[socket.id] = socket.id;
+                        socket.to('manager').emit('manager-update', [socket.id], userToken[0]);
+                    }else{
+                        let oldUserId = await sequelize.query('SELECT * FROM users WHERE email = \''+userToken[0].email+'\'', { type: sequelize.QueryTypes.SELECT});
+                        basket[oldUserId[0]['id']] = socket.id;
+                        socket.userId = oldUserId[0]['id'];
+                    }
+            }
         }
     });
     socket.on('sendUserMessage', function (messageData) {
@@ -121,7 +166,7 @@ io.on('connection', (socket) => {
                 "message": messageData.message,
                 "date": dateFormat(new Date(), 'h:MM:ss    |    d.m.yyyy')
             });
-        socket.to(messageData.user).emit('chat message',
+        socket.to(basket[messageData.user]).emit('chat message',
             {
                 "name": "Модератор",
                 "message": messageData.message,
@@ -129,7 +174,7 @@ io.on('connection', (socket) => {
             });
     });
     socket.on('chat message', function (messageData){
-        sequelize.query("INSERT INTO messages SET sender='"+socket.id+
+        sequelize.query("INSERT INTO messages SET sender='"+socket.userId+
             "', recipient='manager', message='"+
             messageData.message+"', date='"+
             dateFormat(new Date(), 'h:MM:ss    |    d.m.yyyy')+
@@ -142,14 +187,14 @@ io.on('connection', (socket) => {
             });
         socket.to('manager').emit('messageFromUser',
             {
-                "userId": socket.id,
+                "userId": socket.userId,
                 "name": socket.id,
                 "message": messageData.message,
                 "date": dateFormat(new Date(), 'h:MM:ss    |    d.m.yyyy')
             });
     })
     socket.on('disconnect', () => {
-        var userId = socket.id;
+        var userId = socket.userId;
         sequelize.query("UPDATE users SET online=0 " +
                           "WHERE id = '"+userId+"'");
     });
