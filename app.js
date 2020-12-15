@@ -1,14 +1,19 @@
 var app = require('express')();
 var http = require('http').createServer(app);
+const fileUpload = require('express-fileupload');
+const serve   = require('express-static');
+var session = require('express-session');
+
 var io = require('socket.io')(http);
+
 var dateFormat = require('dateformat');
 const Sequelize = require('sequelize');
 var sequelize = new Sequelize('support_chat', 'chat', '123123', {
     dialect: 'mariadb'
 });
-var session = require('express-session');
 var bodyParser = require('body-parser');
 var md5 = require('md5');
+const fs = require('fs')
 
 const start = async () => {
     try {
@@ -20,6 +25,10 @@ const start = async () => {
 }
 
 start();
+
+app.use(fileUpload({
+    createParentPath: true
+}));
 
 
 
@@ -35,18 +44,14 @@ if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
     sess.cookie.secure = true // serve secure cookies
 }
+
 app.use(bodyParser.urlencoded({ extended: false }))
 
-// parse application/json
 app.use(bodyParser.json())
 
-// app.use(function (req, res) {
-//     res.setHeader('Content-Type', 'text/plain')
-//     res.write('you posted:\n')
-//     res.end(JSON.stringify(req.body, null, 2))
-// })
-
-app.use(session(sess))
+app.use(session(sess));
+app.use('/static', serve(__dirname + '/static'));
+app.use('/uploads', serve(__dirname + '/uploads'));
 
 let usersData = [];
 
@@ -59,6 +64,45 @@ async function handleMessage(data){
 
 app.get('/', async (req, res) => {
     res.render('index', {data: usersData});
+});
+
+app.post('/upload', async (req, res) => {
+    try {
+        if(!req.files) {
+            res.send({
+                status: false,
+                message: 'No file uploaded'
+            });
+        } else {
+            let file = req.files.file;
+            let accessExt = ['image/svg+xml'];
+            if (accessExt.indexOf(file.mimetype) != -1) {
+                let filename = md5(
+                    Math.floor(Math.random() * Math.floor(150))
+                    + Math.floor(Math.random() * Math.floor(150))
+                    )
+                    + "/"
+                    + file.name.replace(" ", "");
+
+                file.mv('./uploads/' + filename);
+
+                res.send({
+                    status: true,
+                    message: 'Файл успешно загружен',
+                    data: {
+                        url: "/uploads/" + filename
+                    }
+                });
+            }else{
+                res.send({
+                    status: false,
+                    message: "Такое расширение файла не разрешено " + file.mimetype
+                });
+            }
+        }
+    } catch (err) {
+        res.status(500).send(err);
+    }
 });
 
 app.post('/', async (req, res) => {
