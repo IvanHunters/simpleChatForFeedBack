@@ -10,6 +10,20 @@
 }
     return found;
 }
+ $('.search-bar').on('keyup', (e) => {
+     let textFilter = $(e.target).val();
+     $('.chat_list').each(function() {
+         let userId =  this.id;
+         let username = $('[data-non-read-user="'+userId+'"]').first().text();
+         var math = "^" + textFilter;
+         var re = new RegExp(math,"imu");
+         if (!username.match(re)) {
+             $('#'+userId).fadeOut();
+         }else{
+             $('#'+userId).fadeIn();
+         }
+     });
+ });
 
     var socket = io();
     socket.emit('connect-user', 'manager', {password: 'FyJ5h463'});
